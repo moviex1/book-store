@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\V1;
 
+use App\Entity\Book;
 use App\Repository\BookRepository;
 use App\Response\BookResponse;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
@@ -33,7 +34,7 @@ class BookController extends AbstractController
 
     #[Route('/{bookId}', requirements: ['bookId' => '\d+'])]
     #[View]
-    public function getBookById(int $bookId, BookRepository $bookRepository): BookResponse|JsonResponse
+    public function getBookById(int $bookId, BookRepository $bookRepository): Book|JsonResponse
     {
         $book = $bookRepository->findOneById($bookId);
         if ($book === null) {

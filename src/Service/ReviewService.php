@@ -19,7 +19,7 @@ class ReviewService
     public function leaveReview(
         User $user,
         ReviewBodyDto $reviewDto,
-    )
+    ): void
     {
         $book = $this->bookRepository->find($reviewDto->bookId);
         $this->reviewRepository->createReview($user, $book, $reviewDto);

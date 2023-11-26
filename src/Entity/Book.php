@@ -62,6 +62,8 @@ class Book
     #[ORM\Column(length: 100)]
     private ?string $cover = null;
 
+    private ?float $avgRating = null;
+
     public function __construct()
     {
         $this->authors = new ArrayCollection();
@@ -111,6 +113,15 @@ class Book
     public function getReviews(): Collection
     {
         return $this->reviews;
+    }
+
+    public function addReview(Review $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+        }
+
+        return $this;
     }
 
     public function getReleaseDate(): ?\DateTimeInterface
@@ -252,4 +263,15 @@ class Book
         $this->cover = $cover;
     }
 
+    public function getAvgRating(): ?float
+    {
+        return $this->avgRating;
+    }
+
+    public function setAvgRating(?float $avgRating): static
+    {
+        $this->avgRating = $avgRating;
+
+        return $this;
+    }
 }
