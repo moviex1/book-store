@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use App\Response\BookResponse;
+use App\Service\BookService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -18,7 +19,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class BookRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, public BookService $bookService)
     {
         parent::__construct($registry, Book::class);
     }
@@ -28,48 +29,36 @@ class BookRepository extends ServiceEntityRepository
         int $limit,
         string $sortBy,
         string $sortOrder
-    ): array
-    {
+    ): array {
         $offset = ($page - 1) * $limit;
 
         $booksResults = $this->booksWithAvgRateQueryBuilder()
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->orderBy('b.' . $sortBy, $sortOrder)
-            ->groupBy('b.id')
             ->getQuery()
             ->getResult();
 
-        $result = [];
-        foreach ($booksResults as $bookResult) {
-            $book = $bookResult[0];
-            $avgRate = $bookResult['avg_rate'];
-            $result[] = new BookResponse($book, $avgRate);
-        }
-
-        return $result;
+        return $this->bookService->processBookResults($booksResults);
     }
 
-    public function findOneById(int $bookId): ?BookResponse
+    public function findOneById(int $bookId): ?Book
     {
-        $result = $this->booksWithAvgRateQueryBuilder()
+        $bookResult = $this->booksWithAvgRateQueryBuilder()
             ->andWhere('b.id = :bookId')
             ->groupBy('b.id')
             ->setParameter(':bookId', $bookId)
             ->getQuery()
             ->getOneOrNullResult();
 
-        if ($result === null) {
+        if ($bookResult === null) {
             return null;
         }
 
-        $book = $result[0];
-        $avgRate = $result['avg_rate'];
-
-        return new BookResponse($book, $avgRate);
+        return $this->bookService->processBookResults([$bookResult]);
     }
 
-    public function findBooksByTagId(int $tagId)
+    public function findBooksByTagId(int $tagId): array
     {
         return $this->booksWithAvgRateQueryBuilder()
             ->innerJoin('b.tags', 't')
@@ -79,54 +68,58 @@ class BookRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findBooksByTitle(string $title)
+    public function findBooksByTitle(string $title): array
     {
-        return $this->booksWithAvgRateQueryBuilder()
+        $bookResults = $this->booksWithAvgRateQueryBuilder()
             ->andWhere('b.title LIKE :title')
             ->setParameter('title', "$title%")
             ->getQuery()
             ->getResult();
+        return $this->bookService->processBookResults($bookResults);
     }
 
-    public function findBooksByAuthorId(int $authorId)
+    public function findBooksByAuthorId(int $authorId): array
     {
-        return $this->booksWithAvgRateQueryBuilder()
+        $bookResults = $this->booksWithAvgRateQueryBuilder()
             ->innerJoin('b.authors', 'a')
             ->andWhere('a.id = :authorId')
             ->setParameter('authorId', $authorId)
             ->getQuery()
             ->getResult();
+
+        return $this->bookService->processBookResults($bookResults);
     }
 
     private function booksWithAvgRateQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('b')
             ->addSelect('b', 'avg(r.rate) as avg_rate')
-            ->leftJoin('b' . '.reviews', 'r');
+            ->leftJoin('b' . '.reviews', 'r')
+            ->groupBy('b.id');
     }
 
-//    /**
-//     * @return Book[] Returns an array of Book objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('b.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    //    /**
+    //     * @return Book[] Returns an array of Book objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('b')
+    //            ->andWhere('b.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('b.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-//    public function findOneBySomeField($value): ?Book
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    //    public function findOneBySomeField($value): ?Book
+    //    {
+    //        return $this->createQueryBuilder('b')
+    //            ->andWhere('b.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }
