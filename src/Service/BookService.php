@@ -6,7 +6,7 @@ use App\Entity\Book;
 
 class BookService
 {
-    public function processBookResults($bookResults): Book|array
+    public function processBookResults(array $bookResults, bool $single = false): Book|array
     {
         $result = [];
         foreach ($bookResults as $bookResult) {
@@ -18,7 +18,7 @@ class BookService
             $result[] = $book;
         }
 
-        if (count($result) == 1){
+        if (count($result) == 1 && $single){
             return $result[0];
         }
 
