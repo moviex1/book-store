@@ -1,41 +1,16 @@
+import { Author } from "./Author"
+import { Photos } from "./photos"
+import { Tags } from "./tags"
+
 export interface Book {
     id: number
     title: string
-    authors: [
-        {
-            id: number
-            firstName: string
-            lastName: string
-            birthDate: string
-            pfpUrl: string
-        },
-        {
-            id: number
-            firstName: string
-            lastName: string
-            birthDate: string
-            pfpUrl: string
-        },
-    ]
+    authors: Author[]
     reviews: string[] | null
     releaseDate: string
     pages: number
     description: string
-    tags: [
-        {
-            id: number
-            name: string
-        },
-    ]
-    photos: [
-        {
-            id: number
-            url: string
-        },
-        {
-            id: number
-            url: string
-        },
-    ]
+    tags: Tags[]
+    photos: Photos[]
     price: string
 }

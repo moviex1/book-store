@@ -19,7 +19,7 @@ const StartWindow = () => {
                     />
                 </svg>
             </div>
-            <div className={"flex flex-col gap-6 py-12 centerY"}>
+            <div className={"flex flex-col gap-6 py-12 "}>
                 <h1 className="text-7xl font-bold uppercase">
                     read and add <br /> your insight
                 </h1>

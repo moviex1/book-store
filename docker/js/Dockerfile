@@ -2,5 +2,5 @@ FROM node:18.17.1-alpine
 
 WORKDIR /app
 
-CMD yarn install
+RUN yarn
 CMD ["yarn", "dev"]
