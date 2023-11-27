@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Dto\ReviewBodyDto;
+use App\Entity\Review;
 use App\Entity\User;
 use App\Repository\BookRepository;
 use App\Repository\ReviewRepository;

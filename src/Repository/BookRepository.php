@@ -55,7 +55,7 @@ class BookRepository extends ServiceEntityRepository
             return null;
         }
 
-        return $this->bookService->processBookResults([$bookResult]);
+        return $this->bookService->processBookResults([$bookResult], true);
     }
 
     public function findBooksByTagId(int $tagId): array
