@@ -1,7 +1,7 @@
 export const fetchBooks = async (limit = 10) => {
     try {
         const response = await fetch(
-            `http://localhost:8081/api/v1/book/?limit=${limit}`
+            `http://${process.env.BACKEND_URL}/api/v1/book/?limit=${limit}`
         )
         return response.json()
     } catch (error) {

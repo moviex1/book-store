@@ -2,12 +2,12 @@
 
 namespace App\Repository;
 
+use App\Denormalizer\BookDenormalizer;
 use App\Entity\Book;
-use App\Response\BookResponse;
-use App\Service\BookService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * @extends ServiceEntityRepository<Book>
@@ -19,7 +19,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class BookRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, public BookService $bookService)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Book::class);
     }
@@ -32,14 +32,14 @@ class BookRepository extends ServiceEntityRepository
     ): array {
         $offset = ($page - 1) * $limit;
 
-        $booksResults = $this->booksWithAvgRateQueryBuilder()
+        $bookResults = $this->booksWithAvgRateQueryBuilder()
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->orderBy('b.' . $sortBy, $sortOrder)
             ->getQuery()
             ->getResult();
 
-        return $this->bookService->processBookResults($booksResults);
+        return $this->processBookResults($bookResults);
     }
 
     public function findOneById(int $bookId): ?Book
@@ -55,17 +55,17 @@ class BookRepository extends ServiceEntityRepository
             return null;
         }
 
-        return $this->bookService->processBookResults([$bookResult], true);
+        return $this->processBookResults([$bookResult], true);
     }
 
     public function findBooksByTagId(int $tagId): array
     {
-        return $this->booksWithAvgRateQueryBuilder()
+        return $this->processBookResults($this->booksWithAvgRateQueryBuilder()
             ->innerJoin('b.tags', 't')
             ->andWhere('t.id = :tagId')
             ->setParameter('tagId', $tagId)
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     public function findBooksByTitle(string $title): array
@@ -75,7 +75,7 @@ class BookRepository extends ServiceEntityRepository
             ->setParameter('title', "$title%")
             ->getQuery()
             ->getResult();
-        return $this->bookService->processBookResults($bookResults);
+        return $this->processBookResults($bookResults);
     }
 
     public function findBooksByAuthorId(int $authorId): array
@@ -87,7 +87,7 @@ class BookRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return $this->bookService->processBookResults($bookResults);
+        return $this->processBookResults($bookResults);
     }
 
     private function booksWithAvgRateQueryBuilder(): QueryBuilder
@@ -96,6 +96,11 @@ class BookRepository extends ServiceEntityRepository
             ->addSelect('b', 'avg(r.rate) as avg_rate')
             ->leftJoin('b' . '.reviews', 'r')
             ->groupBy('b.id');
+    }
+    private function processBookResults(array $bookResults, bool $single = false): Book|array
+    {
+        $serializer = new Serializer([new BookDenormalizer]);
+        return $serializer->denormalize($bookResults, Book::class, context: ['single' => $single]);
     }
 
     //    /**

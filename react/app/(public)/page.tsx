@@ -15,6 +15,7 @@ import { fetchBooks } from "@/services/books"
 
 export default async function Home() {
     const books: Book[] = await fetchBooks()
+    console.log(books)
 
     return (
         <>

@@ -39,7 +39,7 @@ services:
       - database
   js:
     container_name: js
-    build: ./docker/js
+    build: ./react
     volumes:
       - ./react:/app
     depends_on:

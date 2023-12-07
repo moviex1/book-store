@@ -11,3 +11,6 @@
 ###< symfony/framework-bundle ###
 /mysql
 /.idea
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###
